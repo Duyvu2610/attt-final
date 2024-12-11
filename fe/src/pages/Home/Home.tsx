@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import Arrivals from './Arrivals';
 import Banner from './Banner';
 import Reviews from './Reviews';
-import Browser from './SeedlingType';
 import TopSelling from './TopSelling';
 
 const Home: React.FC = () => {
@@ -18,7 +17,6 @@ const Home: React.FC = () => {
             <Banner />
             <Arrivals />
             <TopSelling/>
-            <Browser />
             <Reviews />
         </div>
     );

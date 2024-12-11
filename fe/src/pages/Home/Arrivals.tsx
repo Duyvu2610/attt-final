@@ -7,6 +7,7 @@ import { callApi } from '../../api/axios';
 import { getNewProduct } from '../../api/homeApi';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { notification } from 'antd';
 
 const Arrivals: React.FC = () => {
     const [data, setData] = useState<Product[]>([]);
@@ -14,7 +15,7 @@ const Arrivals: React.FC = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const result: Product[] = await callApi(() => getNewProduct());
+            const result: Product[] = await callApi(() => getNewProduct().catch((err) => notification.error({message: err, duration: 1.5})));
             setData(result);
         };
 

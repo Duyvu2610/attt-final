@@ -1,7 +1,7 @@
 import { callApi, registerNewUser } from "../api/axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { Login, SignUpInfo } from "../types/types";
+import { SignUpInfo } from "../types/types";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
