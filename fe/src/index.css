@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {  
+  @keyframes gradient {  
+      0% {  
+          background-position: 200% 0;  
+      }  
+      100% {  
+          background-position: -200% 0;  
+      }  
+  }  
+
+  .animate-gradient {  
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);  
+      background-size: 400% 100%;  
+      animation: gradient 2.5s ease-in-out infinite;  
+  }  
+}  
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+:root {
+  --width-page: 1240px;
+  --primary-color: #81c408;
+}
+* {
+  scroll-behavior: smooth;
+}
+
+*::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+@layer components {
+  @keyframes ping {
+    0% {
+      opacity: 1;
+      border-color: white;
+    }
+    100% {
+      transform: scale(1.7, 1.7);
+      opacity: 0;
+      border-color: white;
+    }
+  }
+
+  .ping {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    padding: 25px;
+    border-radius: 50%;
+    border: 1px solid white;
+    animation: ping 2s infinite;
+  }
+
+  .ping1 {
+    animation-delay: 0s;
+  }
+
+  .ping2 {
+    animation-delay: 0.25s;
+  }
+
+  .ping3 {
+    animation-delay: 0.5s;
+  }
+}
+
+.wrapper {
+    max-width: var(--width-page);
+    margin: 0 auto;
+}
+
+html {
+  font-family: "Roboto", sans-serif;
+}
+
+html *::-webkit-scrollbar {
+  border-radius: 0;
+  width: 8px;
+}
+
+html *::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+html *::-webkit-scrollbar-track {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity)) ;
+  margin: 0.625rem ;
+}

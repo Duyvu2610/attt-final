@@ -1,0 +1,6 @@
+[
+    { "title": "Trang chủ", "to": "/" },
+    { "title": "Sản phẩm", "to": "/products" },
+    { "title": "Liên hệ", "to": "/contact" },
+    { "title": "Phát trực tiếp", "to": "/live" }
+]
