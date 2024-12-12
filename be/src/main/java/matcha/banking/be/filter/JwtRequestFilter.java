@@ -10,13 +10,14 @@ import matcha.banking.be.entity.UserEntity;
 import matcha.banking.be.service.UserService;
 import matcha.banking.be.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -49,13 +50,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserEntity userEntity = this.userService.getUserByEmail(email);
-
+                List<SimpleGrantedAuthority> authorities = userEntity.getRoles().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRole().name().toUpperCase())).toList();
                 if (jwtUtil.validateToken(token, userEntity)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                            userEntity, null, new ArrayList<>());
+                            userEntity, null, authorities
+                    );
                     usernamePasswordAuthenticationToken
                             .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    logger.info(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
                 }
             }
 

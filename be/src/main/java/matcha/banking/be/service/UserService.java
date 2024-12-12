@@ -1,23 +1,25 @@
 package matcha.banking.be.service;
 
 import lombok.RequiredArgsConstructor;
+import matcha.banking.be.dao.RoleDao;
 import matcha.banking.be.dao.UserDao;
 import matcha.banking.be.dto.RegisterDto;
 import matcha.banking.be.entity.UserEntity;
+import matcha.banking.be.enum_type.Role;
 import matcha.banking.be.util.JwtUtil;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserDao userDao;
+    private final RoleDao roleDao;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -39,6 +41,7 @@ public class UserService {
         userEntity.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         userEntity.setCreated(LocalDateTime.now());
         userEntity.setUpdated(LocalDateTime.now());
+        roleDao.findByRole(Role.USER).ifPresent(roleEntity -> userEntity.setRoles(Collections.singletonList(roleEntity)));
         return userDao.save(userEntity);
     }
 
