@@ -34,6 +34,7 @@ public class SecurityConfigurer {
                                 .requestMatchers("/home/**").permitAll()
                                 .requestMatchers("/products/**").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/review/**").permitAll()
+                                .requestMatchers("admin/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(sess ->

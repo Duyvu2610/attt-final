@@ -5,9 +5,13 @@ spring:
     url: "jdbc:postgresql://dpg-csu4l0qj1k6c738et7ig-a.singapore-postgres.render.com:5432/test_9i83"
     username: "test_9i83_user"
     password: "1gHhBLz6r5QGwNTUkaA7Jh646cWrJ4GK"
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   mail:
     host: smtp.gmail.com
     port: 587
@@ -23,18 +27,3 @@ server:
   servlet:
     context-path: "/api/v1"
   port: 8081
-
-#spring:
-#  application:
-#    name: "be"
-#  datasource:
-#    url: "jdbc:postgresql://localhost:5432/postgres"
-#    username: "postgres"
-#    password: "postgres"
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#server:
-#  servlet:
-#    context-path: "/api/v1"
-#  port: 8081
