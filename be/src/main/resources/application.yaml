@@ -2,9 +2,9 @@ spring:
   application:
     name: "be"
   datasource:
-    url: "jdbc:postgresql://dpg-cq4jo3eehbks73bcpv1g-a.singapore-postgres.render.com:5432/seedling"
-    username: "seedling"
-    password: "8gOJeGC71kiZqhNGmqwhZxCslVPXbuwQ"
+    url: "jdbc:postgresql://dpg-csu4l0qj1k6c738et7ig-a.singapore-postgres.render.com:5432/test_9i83"
+    username: "test_9i83_user"
+    password: "1gHhBLz6r5QGwNTUkaA7Jh646cWrJ4GK"
   jpa:
     hibernate:
       ddl-auto: update

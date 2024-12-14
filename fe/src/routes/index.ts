@@ -1,6 +1,7 @@
 import config from "../config";
 import DefaultLayout from "../layouts/DefaultLayout";
 import SimpleHeaderLayout from "../layouts/SimpleHeaderLayout";
+import AdminPage from "../pages/Admin/AdminPage";
 import CartPage from "../pages/Cart/CartPage";
 import Contact from "../pages/Contact";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
@@ -47,6 +48,8 @@ const publicRoutes = [
   { path: config.routes["page-not-found"], component: PageNotFound },
 ];
 
-const privateRoutes: any[] = [];
+const privateRoutes: any[] = [
+  { path: config.routes.admin, component: AdminPage},
+];
 
 export { publicRoutes, privateRoutes };

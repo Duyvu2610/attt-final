@@ -12,6 +12,7 @@ const routes = {
   "reset-pass": "/reset-password",
   "produc-detail": "/products/:id",
   "page-not-found": "*",
+  admin : "/admin",
 };
 
 export default routes;
