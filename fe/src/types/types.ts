@@ -150,3 +150,31 @@ export interface GetUserInfoDto {
   name: string;
   email: string;
 }
+
+export interface Order {
+  id: number;
+  createdAt: Date;
+  paymentMethod: string;
+  paymentStatus: string;
+  orderStatus: string;
+  user: User;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  password: string;
+  gender: number | null;
+  dob:  [number, number, number] | null;
+  email: string;
+  address: string | null;
+  phone: string | null;
+  isActive: string | null;
+}
+
+export interface CartDetail {
+  id: number;
+  quantity: number;
+  checkIn: [number, number, number];
+  checkOut: [number, number, number];
+}
