@@ -28,12 +28,7 @@ public class OrderDetailEntity {
     @JoinColumn(name = "product_id")
     private ProductEntity product;
 
-    private Double price; //current room price
-
-    @Column(name = "check_in")
-    private LocalDate checkIn;
-
-    @Column(name = "check_out")
-    private LocalDate checkOut;
+    private Integer amount;
+    private Double price;
 
 }

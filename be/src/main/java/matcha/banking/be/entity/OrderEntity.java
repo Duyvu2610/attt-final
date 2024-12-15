@@ -25,19 +25,12 @@ public class OrderEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "order_status")
-    private OrderStatus orderStatus;
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonIgnore
     private List<OrderDetailEntity> orderDetails;
 
-    private String paymentMethod;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PaymentStatus paymentStatus;
+    private String digitalSignature;
+    private boolean verified;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -45,8 +38,4 @@ public class OrderEntity {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @Column(name = "bill_id")
-    private UUID billId;
-
 }
