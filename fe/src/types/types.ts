@@ -92,6 +92,16 @@ export interface CardInfo {
   productId: number;
 }
 
+export interface OrderRequest {
+  userId: number;
+  orderDetails: Array<OrderDetail>;
+}
+
+export interface OrderDetail {
+  productId: number;
+  amount: number;
+}
+
 export interface Login {
   email: string;
   password: string;
@@ -181,4 +191,40 @@ export interface CartDetail {
   quantity: number;
   checkIn: [number, number, number];
   checkOut: [number, number, number];
+}
+
+export interface OrderResponse {
+  id: number;
+  user: User;
+  digitalSignature: any;
+  totalPrice: number;
+  verified: boolean;
+  createdAt: number[];
+  updatedAt: number[];
+}
+
+export interface Key {
+  id: number;
+  publicKey: string;
+  createTime: number[];
+  endTime: number[];
+}
+
+export interface UserAdmin {
+  id: number;
+  name: string;
+  email: string;
+  created: number[];
+  updated: number[];
+}
+
+export interface OrderAdmin {
+  id: number;
+  user: UserAdmin;
+  orderDetails: any[];
+  digitalSignature: any;
+  verified: boolean;
+  totalPrice: number | null;
+  createdAt: number[];
+  updatedAt: number[];
 }

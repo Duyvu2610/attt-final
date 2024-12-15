@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { callApi, getCartByUser, payCart } from "../../api/axios";
 import { Emitter as emitter } from "../../eventEmitter/EventEmitter";
 import { RootState } from "../../redux/store";
-import { CardInfo, GetCartReponseDto } from "../../types/types";
+import { CardInfo, GetCartReponseDto, Order, OrderRequest } from "../../types/types";
 import { addListCartPay } from "../../redux/appSlice";
 
 import CartDetail from "./CartDetail";
@@ -92,8 +92,21 @@ function CartPage() {
       return;
     }
     const fecth = async () => {
+      if (!user) {
+        toast.error("User not found");
+        return;
+      }
       try {
-        await callApi(() => payCart(listCartPay));
+        const orderRequest = {
+          userId: Number(user.id),
+          orderDetails: listCartPay.map((item) => {
+            return {
+              productId: item.productId,
+              amount: item.quantity,
+            };
+          }),
+        } as OrderRequest;
+        await callApi(() => payCart(orderRequest));
         setIsRerender(prev => !prev);
         setTotalCard(0);
         setTotalPrice(0);

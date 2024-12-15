@@ -3,28 +3,39 @@ import { object, string } from "yup";
 import { RootState } from "../redux/store";
 import { FastField, Form, Formik } from "formik";
 import InputField from "../components/InputField";
-import { GetUserInfoDto } from "../types/types";
-import { callApi } from "../api/axios";
+import { GetUserInfoDto, OrderResponse, Key } from "../types/types";
+import { baseAxios, callApi } from "../api/axios";
 import Swal from "sweetalert2";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { uploadToCloudinary } from "../utils/helper";
-import { Button, DatePicker, Modal, notification, Table } from "antd";
 import {
-  FaKey,
-  FaUpload,
-  FaExclamationTriangle,
-  FaSave,
-  FaUserCircle,
-} from "react-icons/fa";
-import { title } from "process";
-import { render } from "react-dom";
+  Button,
+  DatePicker,
+  Modal,
+  notification,
+  Table,
+  Tag,
+  Tooltip,
+  Form as AntdForm,
+  Input,
+} from "antd";
+import { FaKey, FaExclamationTriangle } from "react-icons/fa";
+import TextArea from "antd/es/input/TextArea";
+import Loading from "../components/Loading/Loading";
 
 function Settings() {
   const [isLoading, setIsLoading] = useState(false);
   const [isShowModal, setIsShowModal] = useState<boolean>(false);
+  const [isShowModalVerify, setIsShowModalVerify] = useState<boolean>(false);
+  const [isShowModalLoad, setIsShowModalLoad] = useState<boolean>(false);
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [dateLossKey, setDateLossKey] = useState<string>("");
+  const [orderId, setOrderId] = useState<number>(0);
+  const [signature, setSignature] = useState<string>("");
+  const [form] = AntdForm.useForm();
 
   // State for key management
-  const [keys, setKeys] = useState({ publicKey: "", privateKey: "" });
+  const [keys, setKeys] = useState<Key[]>();
 
   type UpdateUserInfoForm = Omit<GetUserInfoDto, "id">;
 
@@ -45,6 +56,41 @@ function Settings() {
   const user: GetUserInfoDto | null = useSelector(
     (state: RootState) => state.auth.currentUser
   );
+
+  const fetchKeys = async () => {
+    try {
+      const res = await baseAxios.get(`/keys/list/${user?.id}`);
+      setKeys(res.data);
+    } catch (error) {
+      notification.error({
+        message: "Error",
+        description: "Failed to fetch keys",
+      });
+    }
+  };
+
+  const fetchOrder = async () => {
+    try {
+      baseAxios
+        .get(`orders/user/${user?.id}`)
+        .then((res) => {
+          setOrders(res.data);
+        })
+        .catch((error) => {
+          notification.error({
+            message: "Error",
+            description: "Failed to fetch order",
+          });
+        });
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch order", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchOrder();
+    fetchKeys();
+  }, [user]);
 
   const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
 
@@ -79,34 +125,91 @@ function Settings() {
 
   // Key management functions
   const generateKeys = () => {
-    // Replace this with actual key generation logic
-    const newPublicKey = "GeneratedPublicKey12345";
-    const newPrivateKey = "GeneratedPrivateKey67890";
-    setKeys({ publicKey: newPublicKey, privateKey: newPrivateKey });
-    notification.success({
-      message: "Keys Generated",
-      description: "Public and private keys have been successfully generated.",
-    });
+    callApi(() =>
+      baseAxios
+        .get(`/keys/generate/${user?.id}`)
+        .then((res) => {
+          const { privateKey } = res.data;
+          const blob = new Blob([privateKey], { type: "text/plain" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "privateKey.txt";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          notification.success({
+            message: "Keys Generated",
+            description: "Keys have been successfully generated.",
+          });
+          fetchKeys();
+        })
+        .catch((error) => {
+          notification.error({
+            message: "Error",
+            description: "Failed to generate keys.",
+          });
+        })
+    );
   };
 
   const loadKeys = () => {
-    // Replace this with actual logic to load keys from a secure source
-    const loadedPublicKey = "LoadedPublicKey12345";
-    const loadedPrivateKey = "LoadedPrivateKey67890";
-    setKeys({ publicKey: loadedPublicKey, privateKey: loadedPrivateKey });
-    notification.success({
-      message: "Keys Loaded",
-      description: "Keys have been successfully loaded.",
-    });
+    form
+      .validateFields()
+      .then((values) => {
+        console.log(values);
+        form.resetFields(); // Reset form after successful submission
+        setIsShowModalLoad(false);
+      })
+      .catch((info) => {
+        console.error("Validation Failed:", info);
+      });
   };
 
   const deleteKeys = () => {
     setIsShowModal(true);
-    setKeys({ publicKey: "", privateKey: "" });
-    notification.success({
-      message: "Keys Deleted",
-      description: "Public and private keys have been successfully deleted.",
-    });
+  };
+
+  const reportKeys = () => {
+    callApi(() =>
+      baseAxios
+        .post(`/keys/report-lost?userId=${user?.id}`, {
+          time: dateLossKey.replace(" ", "T"),
+        })
+        .then((res) => {
+          notification.success({
+            message: "Keys Deleted",
+            description: "Keys have been successfully deleted.",
+          });
+          fetchKeys();
+        })
+        .catch((error) => {
+          notification.error({
+            message: "Error",
+            description: "Failed to delete keys.",
+          });
+        })
+        .finally(() => {
+          setIsShowModal(false);
+        })
+    );
+  };
+
+  const getInfoOrder = async (id: number) => {
+    try {
+      const res = await baseAxios.get(`orders/${id}/signature-data`);
+      await navigator.clipboard.writeText(JSON.stringify(res.data));
+      notification.success({
+        message: "Data Copied",
+        description: "Order data has been copied to clipboard.",
+      });
+    } catch (error) {
+      notification.error({
+        message: "Error",
+        description: "Failed to copy order data to clipboard.",
+      });
+    }
   };
 
   const columns = [
@@ -117,33 +220,136 @@ function Settings() {
       render: (text: string) => <span>{text}</span>,
     },
     {
-        title: "Action",
-        key: "action",
-        dataIndex: "action",
-        render: (text: string, record: any) => (<Button>Chi tiet</Button>)
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text: string) => <span>{text}</span>,
+    },
+    {
+      title: "Tổng tiền",
+      dataIndex: "totalPrice",
+      key: "totalPrice",
+      render: (text: string) => <span>{text}</span>,
+    },
+    {
+      title: "Status",
+      dataIndex: "digitalSignature",
+      key: "digitalSignature",
+      render: (digitalSignature: any) =>
+        digitalSignature ? (
+          <Tag color="green">đã xác thực đơn hàng</Tag>
+        ) : (
+          <Tag color="red">Chưa xác thực đơn hàng</Tag>
+        ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: OrderResponse) => (
+        <div className="flex gap-2">
+          <Button type="primary" size="small">
+            Chi tiet
+          </Button>
+          <Button size="small" onClick={() => getInfoOrder(record.id)}>
+            lay thong tin
+          </Button>
+          <Button
+            size="small"
+            onClick={() => {
+              setOrderId(record.id);
+              setIsShowModalVerify(true);
+            }}
+          >
+            xac thuc
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
-    }
-
-]
+  const handleAddSignature = (): void => {
+    setIsShowModalVerify(false);
+    baseAxios
+      .post(`orders/${orderId}/digital-signature`, {
+        digitalSignature: signature,
+      })
+      .then((res) => {
+        notification.success({
+          message: "Signature Added",
+          description: "Signature has been successfully added.",
+        });
+      })
+      .catch((error) => {
+        notification.error({
+          message: "Error",
+          description: "Failed to add signature.",
+        });
+      });
+    fetchOrder();
+  };
 
   return (
     <div className="wrapper">
+      {isLoading ?? <Loading />}
+      <Modal
+        title="load key"
+        open={isShowModalLoad}
+        onOk={loadKeys}
+        onCancel={() => setIsShowModalLoad(false)}
+      >
+        <AntdForm form={form} layout="vertical">
+          <AntdForm.Item
+            label="Public Key"
+            name="publicKey"
+            rules={[
+              { required: true, message: "Please enter the public key!" },
+            ]}
+          >
+            <Input placeholder="Enter your public key" />
+          </AntdForm.Item>
+
+          <AntdForm.Item
+            label="Private Key"
+            name="privateKey"
+            rules={[
+              { required: true, message: "Please enter the private key!" },
+            ]}
+          >
+            <Input.Password placeholder="Enter your private key" />
+          </AntdForm.Item>
+        </AntdForm>
+      </Modal>
       <Modal
         title="Xác nhận thời điểm bị lộ key"
         open={isShowModal}
-        onOk={() => {}}
+        onOk={reportKeys}
         onCancel={() => {
           setIsShowModal(false);
         }}
       >
         <DatePicker
+          showTime
           onChange={(value, dateString) => {
-            console.log("Selected Time: ", value);
-            console.log("Formatted Selected Time: ", dateString);
+            setDateLossKey(
+              Array.isArray(dateString) ? dateString[0] : dateString
+            );
           }}
         />
       </Modal>
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-20">
+      <Modal
+        title="Nhập chữ ký để xác thực đơn hàng"
+        open={isShowModalVerify}
+        onOk={handleAddSignature}
+        onCancel={() => setIsShowModalVerify(false)}
+      >
+        <TextArea
+          className="w-full h-40 border rounded-lg p-2"
+          placeholder="Nhập chữ ký vào đây"
+          value={signature}
+          onChange={(e) => setSignature(e.target.value)}
+        ></TextArea>
+      </Modal>
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-20 max-h-[700px] mb-8">
         <Formik<UpdateUserInfoForm>
           initialValues={{
             name: user?.name || "",
@@ -246,8 +452,11 @@ function Settings() {
           )}
         </Formik>
 
-        <div className="mt-10 p-4 border rounded-lg shadow-sm h-[80%] overflow-y-auto">
-          <h2 className="text-lg font-bold mb-4">Key Management</h2>
+        <div className="mt-10 p-4 border rounded-lg shadow-sm max-h-[570px] overflow-y-auto">
+          <div className="flex gap-4  mb-4 items-center">
+            <h2 className="text-lg font-bold">Key Management </h2>{" "}
+            <span>({keys?.length})</span>
+          </div>
           <div className="flex gap-4">
             {" "}
             <Button
@@ -258,100 +467,55 @@ function Settings() {
             </Button>
             <Button
               className=" px-4 py-2 rounded-lg flex items-center gap-2"
-              onClick={generateKeys}
+              onClick={() => setIsShowModalLoad(true)}
             >
               Load key pair
             </Button>
           </div>
           <div className="grid grid-cols-1 my-4">
-            <div className="border rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaKey className="text-gray-500" />
-                Key pari 1 <span className="text-green-400">(active)</span>
-              </div>
-              <Button
-                danger
-                icon={<FaExclamationTriangle />}
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                onClick={deleteKeys}
+            {keys?.map((key, index) => (
+              <div
+                className="border rounded-lg p-4 mb-4 flex justify-between items-center"
+                key={index}
               >
-                Report
-              </Button>
-            </div>
-            <div className="border rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaKey className="text-gray-500" />
-                Key pari 1 <span className="text-green-400">(active)</span>
+                <div className="flex items-center gap-2">
+                  <FaKey className="text-gray-500" />
+                  <Tooltip title={key.publicKey}>
+                    <span className="truncate max-w-xs block">
+                      {key.publicKey.length > 30
+                        ? `${key.publicKey.slice(0, 30)}...`
+                        : key.publicKey}
+                    </span>
+                  </Tooltip>
+                  {key.endTime ? (
+                    <Tag color="red">Invalid</Tag>
+                  ) : (
+                    <Tag color="green">Valid</Tag>
+                  )}
+                </div>
+                {key.endTime ? (
+                  <></>
+                ) : (
+                  <Button
+                    danger
+                    icon={<FaExclamationTriangle />}
+                    className="px-4 py-2 rounded-lg flex items-center gap-2"
+                    onClick={deleteKeys}
+                  >
+                    Report
+                  </Button>
+                )}
               </div>
-              <Button
-                danger
-                icon={<FaExclamationTriangle />}
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                onClick={deleteKeys}
-              >
-                Report
-              </Button>
-            </div>
-            <div className="border rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaKey className="text-gray-500" />
-                Key pari 1 <span className="text-green-400">(active)</span>
-              </div>
-              <Button
-                danger
-                icon={<FaExclamationTriangle />}
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                onClick={deleteKeys}
-              >
-                Report
-              </Button>
-            </div>
-            <div className="border rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaKey className="text-gray-500" />
-                Key pari 1 <span className="text-green-400">(active)</span>
-              </div>
-              <Button
-                danger
-                icon={<FaExclamationTriangle />}
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                onClick={deleteKeys}
-              >
-                Report
-              </Button>
-            </div>
-            <div className="border rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaKey className="text-gray-500" />
-                Key pari 1 <span className="text-green-400">(active)</span>
-              </div>
-              <Button
-                danger
-                icon={<FaExclamationTriangle />}
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                onClick={deleteKeys}
-              >
-                Report
-              </Button>
-            </div>
-            <div className="border rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaKey className="text-gray-500" />
-                Key pari 1 <span className="text-green-400">(active)</span>
-              </div>
-              <Button
-                danger
-                icon={<FaExclamationTriangle />}
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                onClick={deleteKeys}
-              >
-                Report
-              </Button>
-            </div>
+            ))}
           </div>
         </div>
       </div>
-      <Table className="mb-40 border rounded" columns={columns}></Table>
+      <Table
+        className="mb-40 border rounded"
+        columns={columns}
+        dataSource={orders}
+        rowKey="id"
+      ></Table>
     </div>
   );
 }
