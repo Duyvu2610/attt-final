@@ -13,6 +13,7 @@ const routes = {
   "produc-detail": "/products/:id",
   "page-not-found": "*",
   admin : "/admin",
+  settings: "/settings",
 };
 
 export default routes;

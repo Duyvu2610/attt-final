@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { getDispatch } from "../utils/helper";
 import { fetchEnd, fetchStart } from "../redux/appSlice";
 
-import { Login, SignUpInfo, Cart, CartItem, ReviewRequestDto, CartRequestDto, GetUserInfoDto, CardInfo, Review, Product } from "../types/types";
+import { Login, SignUpInfo, Cart, CartItem, ReviewRequestDto, CartRequestDto, GetUserInfoDto, CardInfo, Review, Product, OrderRequest } from "../types/types";
 import { Dispatch } from "redux";
 import { logOutSuccess, loginSuccess } from "../redux/authSlice";
 import Swal from "sweetalert2";
@@ -206,9 +206,9 @@ export const deleteCart = async (ids: number[]) => {
   }
 };
 
-export const payCart = async (cartList: CardInfo[]) => {
+export const payCart = async (cartList: OrderRequest) => {
   try {
-    const res = await baseAxios.post(`carts/pay`, cartList);
+    const res = await baseAxios.post(`orders/create`, cartList);
     return res.data;
   } catch (error) {
     return Promise.reject(error);

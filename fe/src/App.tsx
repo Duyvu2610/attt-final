@@ -8,8 +8,12 @@ import Loading from "./components/Loading/Loading";
 import PrivateRoute from "./components/PrivateRoute";
 import { RootState } from "./redux/store";
 import { privateRoutes, publicRoutes } from "./routes";
+import { notification } from "antd";
 
 function App() {
+  notification.config({
+    duration: 2, // Tất cả thông báo tắt sau 2 giây
+  });
   const user = useSelector((state: RootState) => state.auth.currentUser);
   const loading = useSelector((state: RootState) => state.app.loading);
  
