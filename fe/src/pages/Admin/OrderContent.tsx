@@ -4,13 +4,69 @@ import { baseAxios } from "../../api/axios";
 import { Order, User } from "../../types/types";
 
 const OrderContent: React.FC = () => {
+  const mockOrders: Order[] = [
+    {
+      id: 1,
+      createdAt: new Date(),
+      paymentMethod: "COD",
+      paymentStatus: "UNPAID",
+      orderStatus: "PENDING",
+      user: {
+        id: "1",
+        name: "Nguyễn Văn A",
+        password: "hashed_password",
+        gender: 1,
+        dob: [1995, 5, 15],
+        email: "nguyenvana@gmail.com",
+        address: "123 Đường ABC, TP.HCM",
+        phone: "0901234567",
+        isActive: "yes",
+      },
+    },
+    {
+      id: 2,
+      createdAt: new Date(),
+      paymentMethod: "Bank Transfer",
+      paymentStatus: "PAID",
+      orderStatus: "APPROVED",
+      user: {
+        id: "2",
+        name: "Trần Thị B",
+        password: "hashed_password",
+        gender: 0,
+        dob: [1997, 10, 25],
+        email: "tranthib@gmail.com",
+        address: "456 Đường XYZ, Hà Nội",
+        phone: "0987654321",
+        isActive: "yes",
+      },
+    },
+    {
+      id: 3,
+      createdAt: new Date(),
+      paymentMethod: "Credit Card",
+      paymentStatus: "PAID",
+      orderStatus: "DELIVERED",
+      user: {
+        id: "3",
+        name: "Lê Văn C",
+        password: "hashed_password",
+        gender: 1,
+        dob: [1990, 3, 20],
+        email: "levanc@gmail.com",
+        address: "789 Đường PQR, Đà Nẵng",
+        phone: null,
+        isActive: "no",
+      },
+    },
+  ];
   const [data, setData] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [addModalVisible, setAddModalVisible] = useState<boolean>(false);
   const [editingRoomType, setEditingRoomType] = useState<Order | null>(null);
   const [searchText, setSearchText] = useState<string>("");
-  const [filteredData, setFilteredData] = useState<Order[]>([]);
+  const [filteredData, setFilteredData] = useState<Order[]>(mockOrders);
 
   const [form] = Form.useForm();
 
@@ -32,7 +88,7 @@ const OrderContent: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    // fetchData();
   }, []);
 
   const handleAddRoomType = async () => {
@@ -72,7 +128,33 @@ const OrderContent: React.FC = () => {
       ),
     },
     {
+      title: "Trạng thái đơn hàng",
+      dataIndex: "orderStatus",
+      key: "orderStatus",
+      render: (text: string) => (
+        <span>
+          <Tag
+            color={
+              text === "PENDING"
+                ? "blue"
+                : text === "APPROVED"
+                ? "green"
+                : "gray"
+            }
+          >
+            {text}
+          </Tag>
+        </span>
+      ),
+    },
+    {
       title: "Người đặt",
+      dataIndex: "user",
+      key: "user",
+      render: (user: User) => <span>{user.email}</span>,
+    },
+    {
+      title: "Chi tiết đơn hàng",
       dataIndex: "user",
       key: "user",
       render: (user: User) => <span>{user.email}</span>,
@@ -207,7 +289,7 @@ const OrderContent: React.FC = () => {
 
   return (
     <div>
-      <h2 className="mb-4">Quản lý lịch đặt phòng</h2>
+      <h2 className="mb-4">Quản lý lịch đặt hàng</h2>
 
       <Table
         columns={columns}

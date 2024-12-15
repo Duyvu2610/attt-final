@@ -149,6 +149,10 @@ export interface GetUserInfoDto {
   id: number;
   name: string;
   email: string;
+  avatar: string;
+  address: string;
+  phone: string;
+  dob: string
 }
 
 export interface Order {

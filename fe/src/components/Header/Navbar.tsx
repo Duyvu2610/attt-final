@@ -7,7 +7,7 @@ import { IoCartOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
 import ReactSelect from "react-select";
-import { getCartByUser, logoutUser } from "../../api/axios"
+import { getCartByUser, logoutUser } from "../../api/axios";
 import DynamicPlaceholder from "./DynamicPlaceholder";
 import Logo from "../../assets/images/logo.png";
 import routes from "../../config/routes";
@@ -85,7 +85,7 @@ const Navbar: FC = () => {
           </Link>
           <DynamicPlaceholder />
 
-          <ul className="hidden lg:flex space-x-12">
+          <ul className="hidden lg:flex space-x-8">
             <NavLink
               to={routes.home}
               className={activeNavLink}
@@ -102,13 +102,13 @@ const Navbar: FC = () => {
               {t("nav.products")}
             </NavLink>
 
-            <NavLink
+            {/* <NavLink
               to={routes.contact}
               className={activeNavLink}
               key={routes.contact}
             >
               {t("nav.contact")}
-            </NavLink>
+            </NavLink> */}
 
             <NavLink
               to={routes.live}
@@ -117,6 +117,14 @@ const Navbar: FC = () => {
             >
               {t("nav.live")}
             </NavLink>
+              {isLogin && (<NavLink
+              to={routes.settings}
+              className={activeNavLink}
+              key={routes.settings}
+            >
+              {t("nav.me")}
+            </NavLink>)}
+            
           </ul>
 
           <div className="flex items-center gap-4">
@@ -124,7 +132,11 @@ const Navbar: FC = () => {
               <div className="relative">
                 <Link to="/cart" className="relative">
                   <IoCartOutline className="w-7 h-7 mt-1" />
-                  {cartCount > 0 && (<div className="transition-all duration-300 w-5 h-5 rounded-full bg-red-600 text-white absolute top-0 text-sm right-[-10px] border border-white text-center">{cartCount}</div>)}
+                  {cartCount > 0 && (
+                    <div className="transition-all duration-300 w-5 h-5 rounded-full bg-red-600 text-white absolute top-0 text-sm right-[-10px] border border-white text-center">
+                      {cartCount}
+                    </div>
+                  )}
                 </Link>
               </div>
               {isLogin ? (
@@ -141,7 +153,9 @@ const Navbar: FC = () => {
               <ReactSelect
                 options={langOptions}
                 isSearchable={false}
-                defaultValue={langOptions.find(option => option.value === i18n.language)}
+                defaultValue={langOptions.find(
+                  (option) => option.value === i18n.language
+                )}
                 onChange={(option) => i18n.changeLanguage(option?.value)}
               />
             </div>
@@ -162,8 +176,9 @@ const Navbar: FC = () => {
         {/* Menu mobile */}
         <div
           ref={menuRef}
-          className={`bg-black w-custom-width h-full text-white z-50 ${isMenuOpen ? "block fixed top-0 right-0 left-0" : "hidden"
-            }`}
+          className={`bg-black w-custom-width h-full text-white z-50 ${
+            isMenuOpen ? "block fixed top-0 right-0 left-0" : "hidden"
+          }`}
         >
           <Link
             to="/"
