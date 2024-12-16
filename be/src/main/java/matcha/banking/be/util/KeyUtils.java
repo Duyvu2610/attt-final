@@ -1,10 +1,15 @@
 package matcha.banking.be.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class KeyUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(KeyUtils.class);
 
     // Phát sinh cặp Key (RSA 2048)
     public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
@@ -22,7 +27,7 @@ public class KeyUtils {
     public static boolean verifySignature(String data, String digitalSignature, String publicKey) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
+        KeyUtils.log.info(data);
         // Decode Public Key từ Base64
         byte[] publicKeyBytes = Base64.getDecoder().decode(publicKey);
         PublicKey pubKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyBytes));

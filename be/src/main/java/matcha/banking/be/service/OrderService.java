@@ -2,8 +2,11 @@ package matcha.banking.be.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import matcha.banking.be.dao.*;
-import matcha.banking.be.dto.CartRequestPayDto;
+import matcha.banking.be.dao.OrderDao;
+import matcha.banking.be.dao.ProductDao;
+import matcha.banking.be.dao.PublicKeyDao;
+import matcha.banking.be.dao.UserDao;
+import matcha.banking.be.dto.OrderDetailJSON;
 import matcha.banking.be.dto.SignatureData;
 import matcha.banking.be.entity.*;
 import matcha.banking.be.util.KeyUtils;
@@ -37,7 +40,8 @@ public class OrderService {
             SignatureData data = new SignatureData();
             data.setOrderId(order.getId());
             data.setCreatedAt(order.getCreatedAt());
-            data.setOrderDetails(order.getOrderDetails());
+
+            data.setOrderDetails(order.getOrderDetails().stream().map(orderDetailEntity -> OrderDetailJSON.builder().amount(orderDetailEntity.getAmount()).price(orderDetailEntity.getPrice()).productId(orderDetailEntity.getProduct().getId()).build()).toList());
 
             UserEntity user = order.getUser();
             data.setUserId(user.getId());
@@ -46,6 +50,7 @@ public class OrderService {
 
             return objectMapper.writeValueAsString(data); // Trả về JSON
         } catch (Exception e) {
+
             throw new RuntimeException("Error generating signature data", e);
         }
     }
