@@ -1,22 +1,17 @@
 import { useState } from "react";
-import {
-  BsPeople,
-} from "react-icons/bs";
 import {Tabs } from "antd";
 import TabPane from "antd/es/tabs/TabPane";
 import { RiCalendarScheduleLine } from "react-icons/ri";
 import { logoutUser } from "../../api/axios";
 import OrderContent from "./OrderContent";
-import KhachHangPage from "./KhachHangPage";
+import Logo from "../../assets/images/logo.png";
 
 
 function AdminPage() {
-  const [activeTab, setActiveTab] = useState("Statistic");
+  const [activeTab, setActiveTab] = useState("Order");
 
   const tabs = [
     { name: "Order", icon: <RiCalendarScheduleLine size={20} />, content: <OrderContent/> },
-    { name: "User", icon: <BsPeople size={20} />, content: <KhachHangPage /> },
-    // { name: "Bill", icon: <RiBillLine size={20} />, content: <BillContent/> },
   ];
 
 
@@ -43,7 +38,7 @@ function AdminPage() {
             </button>
           </div>
           <div className="flex-1">
-            <a className="btn btn-ghost text-xl">Toure Hotel</a>
+            <img src={Logo} alt="" className="w-32" />
           </div>
           <div className="flex-none">
             <button className="btn btn-square btn-ghost" onClick={logoutUser}>
