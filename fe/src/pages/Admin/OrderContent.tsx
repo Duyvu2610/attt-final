@@ -110,12 +110,26 @@ const OrderContent: React.FC = () => {
     setLoading(true);
     baseAxios
       .get(`orders/${order.id}/verify`)
-      .then(() => {
+      .then((data) => {
+        console.log(data);
+        if (data.status !== 200) {
+          notification.error({
+            message: "Đơn hàng không phải chính chủ",
+            description: "Đơn hàng không phải chính chủ",
+          });
+        }
+        if (data.data) {
         notification.success({
           message: "Chấp nhận đơn hàng thành công",
           description: "Đơn hàng đã được chấp nhận.",
         });
         fetchData();
+        } else {
+          notification.error({
+            message: "Đơn hàng không phải chính chủ",
+            description: "Đơn hàng không phải chính chủ",
+          });
+        }
       })
       .catch((error) => {
         notification.error({
@@ -125,7 +139,6 @@ const OrderContent: React.FC = () => {
       })
       .finally(() => {
         setLoading(false);
-        fetchData();
       });
   };
 

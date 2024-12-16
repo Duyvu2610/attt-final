@@ -34,6 +34,8 @@ public class UserEntity {
     @Column(name = "created_at")
     private LocalDateTime created;
 
+    private String avatar;
+
     /* Update time */
     @Column(name = "updated_at")
     private LocalDateTime updated;

@@ -201,6 +201,7 @@ export interface OrderResponse {
   verified: boolean;
   createdAt: number[];
   updatedAt: number[];
+  isAccepted: boolean;
 }
 
 export interface Key {

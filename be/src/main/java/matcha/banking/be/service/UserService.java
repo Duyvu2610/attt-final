@@ -76,4 +76,14 @@ public class UserService {
             userDao.save(user);
         }
     }
+
+    public void updateUser(String email, String newName, String avatar, Integer id) {
+        UserEntity user = userDao.findById(id).orElse(null);
+        if (user != null) {
+            user.setName(newName);
+            user.setAvatar(avatar);
+            user.setEmail(email);
+            userDao.save(user);
+        }
+    }
 }

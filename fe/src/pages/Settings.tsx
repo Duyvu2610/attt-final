@@ -33,6 +33,7 @@ function Settings() {
   const [orderId, setOrderId] = useState<number>(0);
   const [signature, setSignature] = useState<string>("");
   const [form] = AntdForm.useForm();
+  const [currentUser, setCurrentUser] = useState<GetUserInfoDto>();
 
   // State for key management
   const [keys, setKeys] = useState<Key[]>();
@@ -87,12 +88,29 @@ function Settings() {
     }
   };
 
+  const fetchUser = async () => {
+    try {
+      const res = await callApi(() => baseAxios.get(`user/${user?.id}`));
+      setCurrentUser(res.data);
+      setAvatar(res.data.avatar);
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch user", "error");
+    }
+  };
+
   useEffect(() => {
+    fetchUser();
     fetchOrder();
     fetchKeys();
   }, [user]);
 
-  const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
+  useEffect(() => {
+    console.log("Current user has been updated:", currentUser);
+  }, [currentUser]);
+
+  const [avatar, setAvatar] = useState<string | null>(
+    currentUser?.avatar || null
+  );
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -232,26 +250,31 @@ function Settings() {
       render: (text: string) => <span>{text}</span>,
     },
     {
-      title: "Status",
-      dataIndex: "digitalSignature",
+      title: "Trạng thái",
       key: "digitalSignature",
-      render: (digitalSignature: any) =>
-        digitalSignature ? (
-          <Tag color="green">đã xác thực đơn hàng</Tag>
-        ) : (
-          <Tag color="red">Chưa xác thực đơn hàng</Tag>
-        ),
+      render: (_: any, record: OrderResponse) => {
+        if (record.isAccepted) {
+          return <Tag color="green">Đơn hàng đã được chấp nhận</Tag>;
+        } else if (record.isAccepted === null) {
+          if (record.digitalSignature) {
+            return <Tag color="yellow">Đơn hàng đang chờ xác nhận</Tag>;
+          }
+          return <Tag color="red">Chưa xác thực</Tag>;
+        } else {
+          return <Tag color="orange">Đơn hàng đã bị từ chối</Tag>;
+        }
+      },
     },
     {
-      title: "Actions",
+      title: "Hành động",
       key: "actions",
       render: (_: any, record: OrderResponse) => (
         <div className="flex gap-2">
           <Button type="primary" size="small">
-            Chi tiet
+            Chi tiết
           </Button>
           <Button size="small" onClick={() => getInfoOrder(record.id)}>
-            lay thong tin
+            Lấy thông tin
           </Button>
           <Button
             size="small"
@@ -260,7 +283,7 @@ function Settings() {
               setIsShowModalVerify(true);
             }}
           >
-            xac thuc
+            Xác thực
           </Button>
         </div>
       ),
@@ -274,6 +297,7 @@ function Settings() {
         digitalSignature: signature,
       })
       .then((res) => {
+        fetchOrder();
         notification.success({
           message: "Signature Added",
           description: "Signature has been successfully added.",
@@ -285,7 +309,23 @@ function Settings() {
           description: "Failed to add signature.",
         });
       });
-    fetchOrder();
+  };
+
+  const handleUpdateProfile = (data: any) => {
+    baseAxios
+      .put(`user/${user?.id}`, { ...data, avatar })
+      .then((res) => {
+        notification.success({
+          message: "Update Success",
+          description: "Profile has been updated successfully.",
+        });
+      })
+      .catch((error) => {
+        notification.error({
+          message: "Update Failed",
+          description: "Failed to update profile.",
+        });
+      });
   };
 
   return (
@@ -351,27 +391,26 @@ function Settings() {
       </Modal>
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-20 max-h-[700px] mb-8">
         <Formik<UpdateUserInfoForm>
+          enableReinitialize
           initialValues={{
-            name: user?.name || "",
-            email: user?.email || "",
-            phone: user?.phone || "",
-            address: user?.address || "",
+            name: currentUser?.name || "",
+            email: currentUser?.email || "",
+            phone: currentUser?.phone || "",
+            address: currentUser?.address || "",
             dob: user?.dob
               ? `${user.dob[0]}-${String(user.dob[1]).padStart(
                   2,
                   "0"
                 )}-${String(user.dob[2]).padStart(2, "0")}`
               : "",
-            avatar: user?.avatar || "",
+            avatar: currentUser?.avatar || "",
           }}
           validationSchema={ProfileSchema}
-          onSubmit={async (values) => {
-            // Submission logic here
-          }}
+          onSubmit={async (values) => handleUpdateProfile(values)}
         >
           {() => (
             <Form className="mt-10 px-4 mx-auto w-full">
-              <div className="text-lg font-bold mb-4">User detail</div>
+              <div className="text-lg font-bold mb-4">Thông tin cá nhân</div>
               <div className="flex flex-col items-center my-5">
                 <label
                   htmlFor="imageUpload"
@@ -384,7 +423,7 @@ function Settings() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-sm text-gray-500">Upload Image</span>
+                    <span className="text-sm text-gray-500">Tải ảnh lên</span>
                   )}
                   <input
                     type="file"
@@ -412,40 +451,16 @@ function Settings() {
                     label="Email"
                   />
                 </li>
-                <li>
-                  <FastField
-                    name="phone"
-                    placeholder="Enter your phone number"
-                    component={InputField}
-                    label="Phone"
-                  />
-                </li>
-                <li>
-                  <FastField
-                    name="address"
-                    placeholder="Enter your address"
-                    component={InputField}
-                    label="Address"
-                  />
-                </li>
-                <li>
-                  <FastField
-                    name="dob"
-                    placeholder="Enter your date of birth (YYYY-MM-DD)"
-                    component={InputField}
-                    label="Date of Birth"
-                    type="date"
-                  />
-                </li>
               </ul>
               <div className="flex justify-center mt-7">
                 <Button
+                  htmlType="submit"
                   className={`${
                     isLoading ? " cursor-not-allowed" : " hover:bg-primaryHover"
                   } transition-all duration-300 px-4 py-2 rounded-lg`}
                   disabled={isLoading}
                 >
-                  {isLoading ? "Uploading..." : "Update Profile"}
+                  {isLoading ? "Đang tải..." : "Cập nhật thông tin"}
                 </Button>
               </div>
             </Form>
@@ -454,7 +469,7 @@ function Settings() {
 
         <div className="mt-10 p-4 border rounded-lg shadow-sm max-h-[570px] overflow-y-auto">
           <div className="flex gap-4  mb-4 items-center">
-            <h2 className="text-lg font-bold">Key Management </h2>{" "}
+            <h2 className="text-lg font-bold">Quản lý khóa</h2>{" "}
             <span>({keys?.length})</span>
           </div>
           <div className="flex gap-4">
@@ -463,13 +478,13 @@ function Settings() {
               className="px-4 py-2 rounded-lg flex items-center gap-2 "
               onClick={generateKeys}
             >
-              Create Key Pair
+              Tạo cặp khóa
             </Button>
             <Button
               className=" px-4 py-2 rounded-lg flex items-center gap-2"
               onClick={() => setIsShowModalLoad(true)}
             >
-              Load key pair
+              Tải cặp khóa
             </Button>
           </div>
           <div className="grid grid-cols-1 my-4">
@@ -488,9 +503,9 @@ function Settings() {
                     </span>
                   </Tooltip>
                   {key.endTime ? (
-                    <Tag color="red">Invalid</Tag>
+                    <Tag color="red">Không hợp lệ</Tag>
                   ) : (
-                    <Tag color="green">Valid</Tag>
+                    <Tag color="green">Hợp lệ</Tag>
                   )}
                 </div>
                 {key.endTime ? (
@@ -502,7 +517,7 @@ function Settings() {
                     className="px-4 py-2 rounded-lg flex items-center gap-2"
                     onClick={deleteKeys}
                   >
-                    Report
+                    Báo mất
                   </Button>
                 )}
               </div>
