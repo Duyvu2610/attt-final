@@ -7,6 +7,6 @@ public class CartRequestPayDto {
     private Long id;
     private Integer productId;
     private Integer quantity;
-    private Double price;
+    private Integer price;
     private String productName;
 }

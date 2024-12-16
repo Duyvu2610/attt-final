@@ -1,21 +1,24 @@
 package matcha.banking.be.controller;
 
 import lombok.RequiredArgsConstructor;
+import matcha.banking.be.dao.CartDao;
 import matcha.banking.be.dao.ProductDao;
 import matcha.banking.be.dao.UserDao;
+import matcha.banking.be.dto.CartRequestPayDto;
 import matcha.banking.be.dto.OrderDetailRequest;
 import matcha.banking.be.dto.OrderRequest;
-import matcha.banking.be.entity.OrderDetailEntity;
-import matcha.banking.be.entity.OrderEntity;
-import matcha.banking.be.entity.ProductEntity;
-import matcha.banking.be.entity.UserEntity;
+import matcha.banking.be.entity.*;
+import matcha.banking.be.mapper.OrderMapper;
 import matcha.banking.be.service.OrderService;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/orders")
@@ -25,6 +28,8 @@ public class OrderController {
     private final OrderService orderService;
     private final UserDao userRepository;
     private final ProductDao productRepository;
+    private final CartDao cartDao;
+    private final OrderMapper orderMapper;
 
     @PostMapping("/create")
     public ResponseEntity<OrderEntity> createOrder(@RequestBody OrderRequest orderRequest) {
@@ -33,8 +38,15 @@ public class OrderController {
             UserEntity user = userRepository.findById(Math.toIntExact(orderRequest.getUserId()))
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            // 3. Tạo đơn hàng mới
+            OrderEntity order = new OrderEntity();
+            order.setUser(user);
+
+            order.setVerified(false); // Ban đầu chưa xác thực chữ ký
+
             // 2. Lấy thông tin sản phẩm từ request
             List<OrderDetailEntity> orderDetails = new ArrayList<>();
+            int totalPrice = 0;
             for (OrderDetailRequest detailRequest : orderRequest.getOrderDetails()) {
                 ProductEntity product = productRepository.findById(Math.toIntExact(detailRequest.getProductId()))
                         .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -42,17 +54,25 @@ public class OrderController {
                 orderDetail.setProduct(product);
                 orderDetail.setAmount(detailRequest.getAmount());
                 orderDetail.setPrice(product.getPrice());
+                orderDetail.setOrder(order);
                 orderDetails.add(orderDetail);
+                totalPrice += product.getPrice() * detailRequest.getAmount();
             }
 
-            // 3. Tạo đơn hàng mới
-            OrderEntity order = new OrderEntity();
-            order.setUser(user);
             order.setOrderDetails(orderDetails);
-            order.setVerified(false); // Ban đầu chưa xác thực chữ ký
-
+            order.setTotalPrice(totalPrice);
             // 4. Lưu đơn hàng vào DB
             order = orderService.saveOrder(order);
+
+            // 5. Xóa giỏ hàng
+            List<Long> cartIds = new ArrayList<>();
+            for (OrderDetailRequest detailRequest : orderRequest.getOrderDetails()) {
+                CartEntity cart = cartDao.findByUserIdAndProductId(Math.toIntExact(orderRequest.getUserId()),
+                                Math.toIntExact(detailRequest.getProductId())).stream()
+                        .filter(cartEntity1 -> cartEntity1.getStatusCode() == 0).findFirst().orElseThrow(() -> new RuntimeException("Cart not found"));
+                cartIds.add(cart.getId());
+            }
+            cartDao.deleteAllById(cartIds);
 
             // 6. Trả về phản hồi
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
@@ -73,9 +93,10 @@ public class OrderController {
     @PostMapping("/{orderId}/digital-signature")
     public ResponseEntity<Void> saveDigitalSignature(
             @PathVariable Long orderId,
-            @RequestBody String digitalSignature
+            @RequestBody Map<String, String> digitalSignature
     ) {
-        orderService.saveDigitalSignature(orderId, digitalSignature);
+        String signature = digitalSignature.get("digitalSignature");
+        orderService.saveDigitalSignature(orderId, signature);
         return ResponseEntity.ok().build();
     }
 
@@ -90,6 +111,12 @@ public class OrderController {
     public ResponseEntity<List<OrderEntity>> getOrdersByUser(@PathVariable Long userId) {
         List<OrderEntity> orders = orderService.getUserOrders(userId);
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<Object> getOrder(@PathVariable Long orderId) {
+        List<OrderDetailEntity> orders = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(orders.stream().map(orderMapper::entityToDto).toList());
     }
 }
 
