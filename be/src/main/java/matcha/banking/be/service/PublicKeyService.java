@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,31 +48,23 @@ public class PublicKeyService {
     }
 
     // Báo mất Key hiện tại và phát sinh Key mới
-    public String reportLostKey(Long userId) throws NoSuchAlgorithmException {
+    public Boolean reportLostKey(Long userId, LocalDateTime time) throws NoSuchAlgorithmException {
         // Kiểm tra Public Key đang active
         Optional<PublicKeyEntity> activeKey = repository.findByUserIdAndEndTimeIsNull(userId);
 
         if (activeKey.isPresent()) {
             // Vô hiệu hóa Public Key cũ
             PublicKeyEntity lostKey = activeKey.get();
-            lostKey.setEndTime(LocalDateTime.now());
+            lostKey.setEndTime(time);
             repository.save(lostKey);
+            return true;
         }
 
-        // Tạo mới và kích hoạt Key
-        PublicKeyEntity newKey = new PublicKeyEntity();
-        KeyPair keyPair = KeyUtils.generateKeyPair();
-        String publicKey = KeyUtils.encodeKey(keyPair.getPublic().getEncoded());
-        newKey.setUserId(userId);
-        newKey.setPublicKey(publicKey);
-        newKey.setCreateTime(LocalDateTime.now());
-        newKey.setEndTime(null); // Active Key mới
-        repository.save(newKey);
-        return KeyUtils.encodeKey(keyPair.getPrivate().getEncoded());
+        return false;
     }
 
     // Lấy tất cả các Public Keys của một user
     public List<PublicKeyEntity> getAllKeys(Long userId) {
-        return repository.findByUserId(userId);
+        return repository.findByUserId(userId).stream().sorted(Comparator.comparing(PublicKeyEntity::getCreateTime).reversed()).toList();
     }
 }

@@ -3,14 +3,11 @@ package matcha.banking.be.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
-import matcha.banking.be.enum_type.OrderStatus;
-import matcha.banking.be.enum_type.PaymentStatus;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -29,12 +26,17 @@ public class OrderEntity {
     @JsonIgnore
     private List<OrderDetailEntity> orderDetails;
 
+    @Column(length = 2048)
     private String digitalSignature;
-    private boolean verified;
+    private Boolean verified;
+    private Integer totalPrice;
 
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "is_accepted")
+    private Boolean isAccepted;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;

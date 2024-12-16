@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,9 +54,10 @@ public class PublicKeyController {
 
     // Báo mất Key và phát sinh Key mới
     @PostMapping("/report-lost")
-    public ResponseEntity<Map<String, String>> reportLostKey(@RequestParam Long userId) throws NoSuchAlgorithmException {
-        String privateKey = service.reportLostKey(userId);
-        return ResponseEntity.ok(Map.of("privateKey", privateKey));
+    public ResponseEntity<Object> reportLostKey(@RequestParam Long userId, @RequestBody Map<String, String> body) throws NoSuchAlgorithmException {
+        String timeString = body.get("time");
+        LocalDateTime time = LocalDateTime.parse(timeString);
+        return ResponseEntity.ok(service.reportLostKey(userId, time));
     }
 
     // Lấy Public Key đang hoạt động

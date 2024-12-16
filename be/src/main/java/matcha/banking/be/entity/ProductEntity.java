@@ -22,7 +22,7 @@ public class ProductEntity {
     private String name;
 
     @Column(name = "price")
-    private Double price;
+    private Integer price;
 
     @Column(name = "quantity_sold")
     private Integer quantitySold;
