@@ -97,6 +97,7 @@ public class OrderController {
     ) {
         String signature = digitalSignature.get("digitalSignature");
         orderService.saveDigitalSignature(orderId, signature);
+
         return ResponseEntity.ok().build();
     }
 

@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +61,8 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         order.setDigitalSignature(digitalSignature);
+        order.setSignatureCreatedAt(LocalDateTime.now());
+        order.setPublicKey(publicKeyDao.findByUserIdAndEndTimeIsNull(Long.valueOf(order.getUser().getId())).orElseThrow(() -> new EmptyResultDataAccessException("No key found", 1)));
         order.setVerified(false); // Chưa xác thực ngay sau khi ký
         orderRepository.save(order);
     }
@@ -83,12 +84,17 @@ public class OrderService {
 
         try {
             // Lấy Public Key từ database
-            Optional<PublicKeyEntity> optionalPublicKey = publicKeyDao.findByUserIdAndEndTimeIsNull(Long.valueOf(user.getId()));
-            if (optionalPublicKey.isEmpty()) {
-                throw new RuntimeException("No active public key found for user");
+            PublicKeyEntity optionalPublicKey = order.getPublicKey();
+            if (optionalPublicKey == null || order.getSignatureCreatedAt() == null) {
+                return false;
             }
 
-            String publicKey = optionalPublicKey.get().getPublicKey();
+            if (optionalPublicKey.getEndTime() != null && order.getSignatureCreatedAt().isAfter(optionalPublicKey.getEndTime())) {
+                return false;
+            }
+
+
+            String publicKey = optionalPublicKey.getPublicKey();
 
             // Xác minh chữ ký số
             boolean isValid = KeyUtils.verifySignature(signatureData, order.getDigitalSignature(), publicKey);

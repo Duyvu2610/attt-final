@@ -31,6 +31,13 @@ public class OrderEntity {
     private Boolean verified;
     private Integer totalPrice;
 
+    private LocalDateTime signatureCreatedAt;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @JoinColumn(name = "public_key_id")
+    private PublicKeyEntity publicKey;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
