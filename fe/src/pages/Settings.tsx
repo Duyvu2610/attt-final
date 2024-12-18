@@ -176,9 +176,27 @@ function Settings() {
     form
       .validateFields()
       .then((values) => {
-        console.log(values);
+        callApi(() =>
+          baseAxios
+            .post(`/keys/save?userId=${user?.id}&publicKey=${values.publicKey}`)
+            .then((res) => {
+              notification.success({
+                message: "Keys Loaded",
+                description: "Keys have been successfully loaded.",
+              });
+              fetchKeys();
+            })
+            .catch((error) => {
+              notification.error({
+                message: "Error",
+                description: "Failed to load keys.",
+              });
+            })
+            .finally(() => {
+              setIsShowModal(false);
+            })
+        );
         form.resetFields(); // Reset form after successful submission
-        setIsShowModalLoad(false);
       })
       .catch((info) => {
         console.error("Validation Failed:", info);
