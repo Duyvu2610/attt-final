@@ -2,9 +2,9 @@ spring:
   application:
     name: "be"
   datasource:
-    url: "jdbc:postgresql://dpg-csu4l0qj1k6c738et7ig-a.singapore-postgres.render.com:5432/test_9i83"
-    username: "test_9i83_user"
-    password: "1gHhBLz6r5QGwNTUkaA7Jh646cWrJ4GK"
+    url: "jdbc:postgresql://dpg-ctjb473tq21c73e1kkbg-a.singapore-postgres.render.com:5432/test_9x5m"
+    username: "test"
+    password: "poEdmePryjrKE7Uz6ZSdRmVU6vt9Ohd4"
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

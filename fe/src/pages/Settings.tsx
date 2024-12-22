@@ -22,6 +22,7 @@ import {
 import { FaKey, FaExclamationTriangle } from "react-icons/fa";
 import TextArea from "antd/es/input/TextArea";
 import Loading from "../components/Loading/Loading";
+import OrderDetailsTable from "../components/ListDetailTable";
 
 function Settings() {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +35,7 @@ function Settings() {
   const [signature, setSignature] = useState<string>("");
   const [form] = AntdForm.useForm();
   const [currentUser, setCurrentUser] = useState<GetUserInfoDto>();
+  const [isShowOrderDetail, setIsShowOrderDetail] = useState<boolean>(false);
 
   // State for key management
   const [keys, setKeys] = useState<Key[]>();
@@ -288,21 +290,28 @@ function Settings() {
       key: "actions",
       render: (_: any, record: OrderResponse) => (
         <div className="flex gap-2">
-          <Button type="primary" size="small">
+          <Button type="primary" size="small" onClick={() => {
+            setOrderId(record.id)
+            setIsShowOrderDetail(true)
+          }}>
             Chi tiết
           </Button>
-          <Button size="small" onClick={() => getInfoOrder(record.id)}>
-            Lấy thông tin
-          </Button>
-          <Button
-            size="small"
-            onClick={() => {
-              setOrderId(record.id);
-              setIsShowModalVerify(true);
-            }}
-          >
-            Xác thực
-          </Button>
+          {record.isAccepted === null && (
+            <Button size="small" onClick={() => getInfoOrder(record.id)}>
+              Lấy thông tin
+            </Button>
+          )}
+          {record.isAccepted === null && (
+            <Button
+              size="small"
+              onClick={() => {
+                setOrderId(record.id);
+                setIsShowModalVerify(true);
+              }}
+            >
+              Xác thực
+            </Button>
+          )}
         </div>
       ),
     },
@@ -348,6 +357,14 @@ function Settings() {
 
   return (
     <div className="wrapper">
+      <Modal
+        width={1000}
+        open={isShowOrderDetail}
+        // onOk={loadKeys}
+        onCancel={() => setIsShowOrderDetail(false)}
+      >
+        {orderId !== undefined && <OrderDetailsTable orderId={orderId} />}
+      </Modal>
       {isLoading ?? <Loading />}
       <Modal
         title="load key"
